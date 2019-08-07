@@ -9,14 +9,15 @@ void BtnDrawer::setText(uint8_t id, const String &str) {
 }
 
 void BtnDrawer::draw(bool force) {
-  Button* const buttons[3] = {
-    &M5.BtnA,
-    &M5.BtnB,
-    &M5.BtnC,
+  Button *const buttons[3] = {
+      &M5.BtnA,
+      &M5.BtnB,
+      &M5.BtnC,
   };
 
   for (uint_fast8_t id = 0; id < 3; id++) {
-    if (_updated[id] || force || buttons[id]->wasPressed() || buttons[id]->wasReleased()) {
+    if (_updated[id] || force || buttons[id]->wasPressed() ||
+        buttons[id]->wasReleased()) {
       drawButton(id, buttons[id]->wasPressed());
     }
   }
