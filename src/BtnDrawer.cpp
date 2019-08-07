@@ -1,6 +1,16 @@
 #include "BtnDrawer.h"
 #include "M5Stack.h"
 
+void BtnDrawer::setColor(uint16_t textColor, uint16_t backColor) {
+  if ((_textColor != textColor) || (_backColor != backColor)) {
+    for (uint_fast8_t id = 0; id < 3; id++) {
+      _updated[id] = true;
+    }
+    _textColor = textColor;
+    _backColor = backColor;
+  }
+}
+
 void BtnDrawer::setText(uint8_t id, const String &str) {
   if (id < 3) {
     _texts[id] = str;
@@ -15,7 +25,7 @@ void BtnDrawer::setTexts(const String &btnA, const String &btnB,
   setText(BUTTON_C, btnC);
 }
 
-void BtnDrawer::draw(bool force) {
+void BtnDrawer::draw() {
   Button *const buttons[3] = {
       &M5.BtnA,
       &M5.BtnB,
@@ -23,7 +33,7 @@ void BtnDrawer::draw(bool force) {
   };
 
   for (uint_fast8_t id = 0; id < 3; id++) {
-    if (_updated[id] || force || buttons[id]->wasPressed() ||
+    if (_updated[id] || buttons[id]->wasPressed() ||
         buttons[id]->wasReleased()) {
       drawButton(id, buttons[id]->wasPressed());
     }
@@ -42,8 +52,8 @@ void BtnDrawer::drawButton(uint8_t id, bool pressed) {
 }
 
 void BtnDrawer::drawButton(uint8_t id, bool pressed, const char *const title) {
-  const uint16_t fgColor = (pressed) ? backColor : textColor;
-  const uint16_t bgColor = (pressed) ? textColor : backColor;
+  const uint16_t fgColor = (pressed) ? _backColor : _textColor;
+  const uint16_t bgColor = (pressed) ? _textColor : _backColor;
 
   static const int16_t lcdw = M5.Lcd.width();
   static const int16_t lcdh = M5.Lcd.height();

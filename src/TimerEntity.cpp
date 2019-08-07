@@ -15,14 +15,12 @@ void TimerEntity::setup() {
   _progressBar.rx = 0;
   _progressBar.rw = M5.Lcd.width();
 
-  _progressBar.draw(true);
-  _digitDisplay.draw(true);
-  _btnDrawer.draw(true);
+  _progressBar.invalidate();
+  _digitDisplay.invalidate();
+  _btnDrawer.invalidate();
 }
 
 void TimerEntity::loop() {
-  bool forcedUpdateUI = false;
-
   switch (_status) {
   case TimerStatus::initial:
     break;
@@ -79,11 +77,8 @@ void TimerEntity::loop() {
         _digitDisplay.setSec(_timerSec);
       }
       if (_visualBeepFlag) {
-        M5.Lcd.fillScreen(TFT_BLACK);
-        _progressBar.backColor = TFT_BLACK;
-
+        setBackColor(TFT_BLACK);
         _visualBeepFlag = false;
-        forcedUpdateUI = true;
       }
       transitToStatus(TimerStatus::stopped);
     } else {
@@ -101,10 +96,7 @@ void TimerEntity::loop() {
       if (currentVisualBeepFlag != _visualBeepFlag) {
         _visualBeepFlag = currentVisualBeepFlag;
 
-        M5.Lcd.fillScreen(_visualBeepFlag ? TFT_RED : TFT_BLACK);
-        _progressBar.backColor = _visualBeepFlag ? TFT_RED : TFT_BLACK;
-
-        forcedUpdateUI = true;
+        setBackColor(_visualBeepFlag ? TFT_RED : TFT_BLACK);
       }
     }
     break;
@@ -132,9 +124,20 @@ void TimerEntity::loop() {
     break;
   }
 
-  _progressBar.draw(forcedUpdateUI);
-  _digitDisplay.draw(forcedUpdateUI);
-  _btnDrawer.draw(forcedUpdateUI);
+  _progressBar.draw();
+  _digitDisplay.draw();
+  _btnDrawer.draw();
+}
+
+void TimerEntity::setBackColor(uint16_t backColor) {
+  if (_backColor != backColor) {
+    _backColor = backColor;
+    M5.Lcd.fillScreen(backColor);
+    _progressBar.setColor(_progressBar.getForeColor(), backColor);
+    _digitDisplay.setColor(_digitDisplay.getTextColor(), backColor);
+    // Do not change color of _btnDrawer but required to redraw.
+    _btnDrawer.invalidate();
+  }
 }
 
 void TimerEntity::transitToStatus(TimerStatus status) {

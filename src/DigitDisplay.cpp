@@ -16,6 +16,16 @@ static inline void convIntTo2Digit(uint16_t num, char *const buf) {
   }
 }
 
+void DigitDisplay::setColor(uint16_t textColor, uint16_t backColor) {
+  if ((_textColor != textColor) || (_backColor != backColor)) {
+    for (uint_fast8_t id = 0; id < 3; id++) {
+      _updated[id] = true;
+    }
+    _textColor = textColor;
+    _backColor = backColor;
+  }
+}
+
 void DigitDisplay::setMin(uint8_t val) {
   if (val != _min) {
     _updated[0] = true;
@@ -30,7 +40,7 @@ void DigitDisplay::setSec(uint8_t val) {
   }
 }
 
-void DigitDisplay::draw(bool force) {
+void DigitDisplay::draw() {
   static const int16_t lcdw = M5.Lcd.width();
   static const int16_t lcdh = M5.Lcd.height();
 
@@ -42,9 +52,9 @@ void DigitDisplay::draw(bool force) {
   const uint8_t tempTextDatum = M5.Lcd.getTextDatum();
   M5.Lcd.setTextDatum(TC_DATUM);
   M5.Lcd.setTextSize(textSize);
-  M5.Lcd.setTextColor(textColor, backColor);
+  M5.Lcd.setTextColor(_textColor, _backColor);
 
-  if (_updated[0] || force) {
+  if (_updated[0]) {
     _updated[0] = true;
 
     // prepare text
@@ -54,13 +64,13 @@ void DigitDisplay::draw(bool force) {
     const int32_t tx = lcdw / 2 - (6 * textSize) * 2;
     M5.Lcd.drawString(textBuf, tx, ty, 1);
   }
-  if (_updated[1] || force) {
+  if (_updated[1]) {
     _updated[1] = true;
 
     const int32_t tx = lcdw / 2;
     M5.Lcd.drawString(":", tx, ty, 1);
   }
-  if (_updated[2] || force) {
+  if (_updated[2]) {
     _updated[2] = true;
 
     // prepare text

@@ -16,9 +16,11 @@ enum class TimerStatus {
 class TimerEntity {
 public:
   TimerEntity(DigitDisplay &digitDisplay, BtnDrawer &btnDrawer) {
-    _status = TimerStatus::initial;
     _digitDisplay = digitDisplay;
     _btnDrawer = btnDrawer;
+
+    _status = TimerStatus::initial;
+    _backColor = TFT_BLACK;
 
     transitToStatus(TimerStatus::initial);
   };
@@ -33,12 +35,15 @@ private:
   unsigned long _startingTime;
   uint8_t _timerMin;
   uint8_t _timerSec;
+
+  uint16_t _backColor;
   bool _visualBeepFlag;
 
   ProgressBar _progressBar;
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;
 
+  void setBackColor(uint16_t backColor);
   void transitToStatus(TimerStatus status);
 };
 
