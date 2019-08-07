@@ -20,6 +20,7 @@ public:
       : _texts{btnA, btnB, btnC} {};
 
   void setText(uint8_t id, const String &str);
+  void setTexts(const String &btnA, const String &btnB, const String &btnC);
   void draw(bool force);
 
 private:

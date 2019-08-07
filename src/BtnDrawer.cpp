@@ -8,6 +8,13 @@ void BtnDrawer::setText(uint8_t id, const String &str) {
   }
 }
 
+void BtnDrawer::setTexts(const String &btnA, const String &btnB,
+                         const String &btnC) {
+  setText(BUTTON_A, btnA);
+  setText(BUTTON_B, btnB);
+  setText(BUTTON_C, btnC);
+}
+
 void BtnDrawer::draw(bool force) {
   Button *const buttons[3] = {
       &M5.BtnA,
