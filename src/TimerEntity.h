@@ -7,6 +7,8 @@
 enum class TimerStatus {
   initial = 0,
   stopped,
+  countDown,
+  beeping,
 };
 
 class TimerEntity {
@@ -19,11 +21,16 @@ public:
     transitToStatus(TimerStatus::initial);
   };
 
+  bool beepingEnabled = true;
+
   void setup();
   void loop();
 
 private:
   TimerStatus _status;
+  unsigned long _startingTime;
+  uint8_t _timerMin;
+  uint8_t _timerSec;
 
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;
