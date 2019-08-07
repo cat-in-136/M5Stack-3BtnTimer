@@ -9,6 +9,7 @@ enum class TimerStatus {
   stopped,
   countDown,
   beeping,
+  countUp,
 };
 
 class TimerEntity {

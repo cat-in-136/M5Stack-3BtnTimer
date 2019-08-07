@@ -32,7 +32,11 @@ void TimerEntity::loop() {
       const uint8_t sec = _digitDisplay.getSec() + 1;
       _digitDisplay.setSec((sec > 59) ? 0 : sec);
     } else if (M5.BtnC.wasPressed()) {
-      transitToStatus(TimerStatus::countDown);
+      if ((_digitDisplay.getMin() == 0) && (_digitDisplay.getSec() == 0)) {
+        transitToStatus(TimerStatus::countUp);
+      } else {
+        transitToStatus(TimerStatus::countDown);
+      }
     }
     break;
   case TimerStatus::countDown:
@@ -93,6 +97,26 @@ void TimerEntity::loop() {
       }
     }
     break;
+  case TimerStatus::countUp:
+    if (M5.BtnC.wasPressed()) {
+      transitToStatus(TimerStatus::stopped);
+    } else {
+      const unsigned long currentTime = millis();
+      const long elapsedTime = currentTime - _startingTime;
+      const long elapsedTimeInSec = elapsedTime / 1000;
+      const long displayedElapsedTimeInSec =
+          ((long)_digitDisplay.getMin() * 60l + (long)_digitDisplay.getSec());
+
+      if (elapsedTimeInSec - displayedElapsedTimeInSec >= 1) {
+        // update digits
+        const uint16_t minutes = elapsedTimeInSec / 60;
+        const uint16_t seconds = elapsedTimeInSec - minutes * 60;
+
+        _digitDisplay.setMin(minutes);
+        _digitDisplay.setSec(seconds);
+      }
+    }
+    break;
   default:
     break;
   }
@@ -113,7 +137,7 @@ void TimerEntity::transitToStatus(TimerStatus status) {
     break;
   case TimerStatus::stopped:
     if (_status == TimerStatus::initial || _status == TimerStatus::countDown ||
-        _status == TimerStatus::beeping) {
+        _status == TimerStatus::beeping || _status == TimerStatus::countUp) {
       newStatus = status;
     }
     break;
@@ -124,6 +148,11 @@ void TimerEntity::transitToStatus(TimerStatus status) {
     break;
   case TimerStatus::beeping:
     newStatus = status;
+    break;
+  case TimerStatus::countUp:
+    if (_status == TimerStatus::stopped) {
+      newStatus = status;
+    }
     break;
   default:
     break;
@@ -144,12 +173,17 @@ void TimerEntity::transitToStatus(TimerStatus status) {
       _timerSec = _digitDisplay.getSec();
       _startingTime = millis();
       _btnDrawer.setTexts("", "", "Stop");
-      _btnDrawer.setTexts("Min", "Sec", "Start");
       break;
     case TimerStatus::beeping:
       _startingTime = millis();
       _visualBeepFlag = false;
       _btnDrawer.setTexts("Stop", "Stop", "Stop");
+      break;
+    case TimerStatus::countUp:
+      _timerMin = 0;
+      _timerSec = 0;
+      _startingTime = millis();
+      _btnDrawer.setTexts("", "", "Stop");
       break;
     default:
       break;
