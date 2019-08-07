@@ -3,6 +3,7 @@
 
 #include "BtnDrawer.h"
 #include "DigitDisplay.h"
+#include "ProgressBar.h"
 
 enum class TimerStatus {
   initial = 0,
@@ -34,6 +35,7 @@ private:
   uint8_t _timerSec;
   bool _visualBeepFlag;
 
+  ProgressBar _progressBar;
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;
 

@@ -3,6 +3,7 @@
 #include "BtnDrawer.h"
 #include "DigitDisplay.h"
 #include "M5Stack.h"
+#include "ProgressBar.h"
 
 static inline unsigned long div_ceil(unsigned long a, unsigned long b) {
   return (a + b - 1) / b;
@@ -11,6 +12,10 @@ static inline unsigned long div_ceil(unsigned long a, unsigned long b) {
 void TimerEntity::setup() {
   transitToStatus(TimerStatus::initial);
 
+  _progressBar.rx = 0;
+  _progressBar.rw = M5.Lcd.width();
+
+  _progressBar.draw(true);
   _digitDisplay.draw(true);
   _btnDrawer.draw(true);
 }
@@ -50,12 +55,14 @@ void TimerEntity::loop() {
       const long remainingTimeInSec = div_ceil(remainingTime, 1000);
       const long displayedRemainingTimeInSec =
           ((long)_digitDisplay.getMin() * 60l + (long)_digitDisplay.getSec());
+      const uint8_t elapsedPercent = (uint8_t)(100 * elapsedTime / timerTime);
 
       if (remainingTime <= 0) {
-        _digitDisplay.setMin(0);
-        _digitDisplay.setSec(0);
+        // transit to beeping if timer expired
         transitToStatus(TimerStatus::beeping);
       } else if (displayedRemainingTimeInSec - remainingTimeInSec >= 1) {
+        _progressBar.setPercent(elapsedPercent);
+
         // update digits
         const uint16_t minutes = remainingTimeInSec / 60;
         const uint16_t seconds = remainingTimeInSec - minutes * 60;
@@ -73,6 +80,8 @@ void TimerEntity::loop() {
       }
       if (_visualBeepFlag) {
         M5.Lcd.fillScreen(TFT_BLACK);
+        _progressBar.backColor = TFT_BLACK;
+
         _visualBeepFlag = false;
         forcedUpdateUI = true;
       }
@@ -93,6 +102,8 @@ void TimerEntity::loop() {
         _visualBeepFlag = currentVisualBeepFlag;
 
         M5.Lcd.fillScreen(_visualBeepFlag ? TFT_RED : TFT_BLACK);
+        _progressBar.backColor = _visualBeepFlag ? TFT_RED : TFT_BLACK;
+
         forcedUpdateUI = true;
       }
     }
@@ -121,6 +132,7 @@ void TimerEntity::loop() {
     break;
   }
 
+  _progressBar.draw(forcedUpdateUI);
   _digitDisplay.draw(forcedUpdateUI);
   _btnDrawer.draw(forcedUpdateUI);
 }
@@ -166,9 +178,12 @@ void TimerEntity::transitToStatus(TimerStatus status) {
       // not reached
       break;
     case TimerStatus::stopped:
+      _progressBar.setVisible(false);
       _btnDrawer.setTexts("Min", "Sec", "Start");
       break;
     case TimerStatus::countDown:
+      _progressBar.setVisible(true);
+      _progressBar.setPercent(0);
       _timerMin = _digitDisplay.getMin();
       _timerSec = _digitDisplay.getSec();
       _startingTime = millis();
@@ -177,12 +192,16 @@ void TimerEntity::transitToStatus(TimerStatus status) {
     case TimerStatus::beeping:
       _startingTime = millis();
       _visualBeepFlag = false;
+      _progressBar.setVisible(false);
+      _digitDisplay.setMin(0);
+      _digitDisplay.setSec(0);
       _btnDrawer.setTexts("Stop", "Stop", "Stop");
       break;
     case TimerStatus::countUp:
       _timerMin = 0;
       _timerSec = 0;
       _startingTime = millis();
+      _progressBar.setVisible(false);
       _btnDrawer.setTexts("", "", "Stop");
       break;
     default:
