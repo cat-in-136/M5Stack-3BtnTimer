@@ -31,6 +31,7 @@ private:
   unsigned long _startingTime;
   uint8_t _timerMin;
   uint8_t _timerSec;
+  bool _visualBeepFlag;
 
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;

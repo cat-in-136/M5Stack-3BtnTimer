@@ -16,6 +16,8 @@ void TimerEntity::setup() {
 }
 
 void TimerEntity::loop() {
+  bool forcedUpdateUI = false;
+
   switch (_status) {
   case TimerStatus::initial:
     break;
@@ -65,15 +67,29 @@ void TimerEntity::loop() {
         _digitDisplay.setMin(_timerMin);
         _digitDisplay.setSec(_timerSec);
       }
+      if (_visualBeepFlag) {
+        M5.Lcd.fillScreen(TFT_BLACK);
+        _visualBeepFlag = false;
+        forcedUpdateUI = true;
+      }
       transitToStatus(TimerStatus::stopped);
     } else {
       const unsigned long beepingPeriod = (millis() - _startingTime) % 1000;
-      if (beepingPeriod < 500) {
-        if (beepingEnabled) {
-          if (beepingPeriod % 100 < 50) {
-            M5.Speaker.tone(1000, 100);
-          }
+
+      // Speaker beep
+      if (beepingEnabled) {
+        if (beepingPeriod % 100 < 50) {
+          M5.Speaker.tone(1000, 100);
         }
+      }
+
+      // Visual beep (red background flash)
+      const bool currentVisualBeepFlag = beepingPeriod < 500;
+      if (currentVisualBeepFlag != _visualBeepFlag) {
+        _visualBeepFlag = currentVisualBeepFlag;
+
+        M5.Lcd.fillScreen(_visualBeepFlag ? TFT_RED : TFT_BLACK);
+        forcedUpdateUI = true;
       }
     }
     break;
@@ -81,8 +97,8 @@ void TimerEntity::loop() {
     break;
   }
 
-  _digitDisplay.draw(false);
-  _btnDrawer.draw(false);
+  _digitDisplay.draw(forcedUpdateUI);
+  _btnDrawer.draw(forcedUpdateUI);
 }
 
 void TimerEntity::transitToStatus(TimerStatus status) {
@@ -131,6 +147,8 @@ void TimerEntity::transitToStatus(TimerStatus status) {
       _btnDrawer.setTexts("Min", "Sec", "Start");
       break;
     case TimerStatus::beeping:
+      _startingTime = millis();
+      _visualBeepFlag = false;
       _btnDrawer.setTexts("Stop", "Stop", "Stop");
       break;
     default:
