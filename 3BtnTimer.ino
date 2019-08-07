@@ -22,6 +22,7 @@ void setup() {
   M5.Lcd.fillScreen(TFT_BLACK);
 
   // mute speaker
+  M5.Speaker.begin();
   M5.Speaker.mute();
 
   btnDrawer.setText(BUTTON_A, "Min");
