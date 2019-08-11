@@ -2,40 +2,35 @@ language: c
 sudo: false
 env:
   global:
-    - ARD_VER=1.8.5
-    - BOARD="espressif:esp32:m5stack-core-esp32:FlashFreq=80"
-    - M5_SD_BUILD_DIR=$TRAVIS_BUILD_DIR/build/SD-Content
+  - ARD_VER=1.8.5
+  - BOARD="espressif:esp32:m5stack-core-esp32:FlashFreq=80"
+  - M5_SD_BUILD_DIR=$TRAVIS_BUILD_DIR/build/SD-Content
 before_install:
-  - # Compiling via Arduino IDE per: https://stackoverflow.com/questions/28510001/how-to-set-up-travis-to-build-arduino-spark-teensy-library
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
-  - sleep 5
-  - export DISPLAY=:1.0
-  - echo "Downloading version $ARD_VER of the Arduino IDE..."
-  - wget http://downloads.arduino.cc/arduino-$ARD_VER-linux64.tar.xz
-  - echo "Extracting the Arduino IDE..."
-  - tar xf arduino-$ARD_VER-linux64.tar.xz
-  - echo "Moving Arduino IDE..."
-  - sudo mv arduino-$ARD_VER /usr/local/share/arduino
-  - echo "Linking Arduino IDE..."
-  - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
-  - echo "Removing Arduino IDE ver $ARD_VER tar that was downloaded..."
-  - rm arduino-$ARD_VER-linux64.tar.xz
-  - mkdir -p $M5_SD_BUILD_DIR
-  - if [[ "$BOARD" =~ "espressif:esp32:" ]]; then
-      mkdir -p ~/Arduino/hardware/espressif &&
-      cd ~/Arduino/hardware/espressif &&
-      git clone https://github.com/espressif/arduino-esp32.git esp32 &&
-      cd esp32/ &&
-      git submodule update --init --recursive &&
-      cd tools/ &&
-      python get.py &&
-      cd $TRAVIS_BUILD_DIR;
-    fi
-
+- # Compiling via Arduino IDE per: https://stackoverflow.com/questions/28510001/how-to-set-up-travis-to-build-arduino-spark-teensy-library
+- /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
+- sleep 5
+- export DISPLAY=:1.0
+- echo "Downloading version $ARD_VER of the Arduino IDE..."
+- wget http://downloads.arduino.cc/arduino-$ARD_VER-linux64.tar.xz
+- echo "Extracting the Arduino IDE..."
+- tar xf arduino-$ARD_VER-linux64.tar.xz
+- echo "Moving Arduino IDE..."
+- sudo mv arduino-$ARD_VER /usr/local/share/arduino
+- echo "Linking Arduino IDE..."
+- sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
+- echo "Removing Arduino IDE ver $ARD_VER tar that was downloaded..."
+- rm arduino-$ARD_VER-linux64.tar.xz
+- mkdir -p $M5_SD_BUILD_DIR
+- if [[ "$BOARD" =~ "espressif:esp32:" ]]; then mkdir -p ~/Arduino/hardware/espressif
+  && cd ~/Arduino/hardware/espressif && git clone https://github.com/espressif/arduino-esp32.git
+  esp32 && cd esp32/ && git submodule update --init --recursive && cd tools/ && python
+  get.py && cd $TRAVIS_BUILD_DIR; fi
 install:
-  - ln -s $PWD /usr/local/share/arduino/libraries/3BtnTimer
-  - arduino --install-library "M5Stack,M5Stack-SD-Updater"
+- ln -s $PWD /usr/local/share/arduino/libraries/3BtnTimer
+- arduino --install-library "M5Stack,M5Stack-SD-Updater"
 script:
-  - arduino --preserve-temp-files --verbose-build --verify --board $BOARD 3BtnTimer.ino
+- arduino --preserve-temp-files --verbose-build --verify --board $BOARD 3BtnTimer.ino
 notifications:
   email: false
+  slack:
+    secure: Iqg8Wn5395789duQIYp8T5pxzwFDY0cNERbYkUyKMntE5rpwexEgrYJrKgwMFRjam1rQ98rCw8DT/mpgs4peaXKKvJ3JyiGrNNradxXIpqfZ3F0RQbN+WC4tMUffOFb9/XCneDKfLzv8UrjcAX9RHKBp2c9NRj3FyXXLYaMKvZxhhSh1E6940YknCHQJ79bJpqOB0AMzrnfIJA/FON1oAqJ5jRc1PVdc91kaC23hRYEPAYD6JORb0WYDRZEiShQoz2dPISU+NOnJsLRMLHSsHOLxAtXSmJLBrNUv8PwVSM9X72n4wiSb2Z2aMYrTi8lkFlJjX4pFuI2sl42cFlN1NfSwo60d6fpsk2Q3sQoO3pzFNPVlPkJfIGs7ZLjzhct04VUn9OY1bUfittmQ7Uh7/xGLjlAlREBmzv7sUMgBFmBAkgc9PC9eCAdb1jVue114JBujgugtWYLFuquNpUM0sS6MF5KVWD3bgKW7RXO5SDMCHd+Ke/hYfq5K7VB/Ps6FfEaWjxv7EtQdFKXEv2/h8l05NH6k/Nn1qSBQwABYUL37XWduQXVCBfiaL5i6Z23JqkNNQc+3322KhZttkEf22+6zE/3xSGIUKC7DcSHH8wrp326JWZf3vPO9a8PtFd+x0g1QHNjlmbeK23p3IFTMonAeIJAB/dHD8opr9dEPogc=
