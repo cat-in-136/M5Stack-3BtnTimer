@@ -36,8 +36,6 @@ install:
   - ln -s $PWD /usr/local/share/arduino/libraries/3BtnTimer
   - arduino --install-library "M5Stack,M5Stack-SD-Updater"
 script:
-  - arduino --verify --board arduino:avr:uno $PWD/examples/arduino_min/ex07_ardmin_slider/ex07_ardmin_slider.ino
-  - arduino --verify --board arduino:avr:mega:cpu=atmega2560 $PWD/examples/arduino/ex07_ard_slider/ex07_ard_slider.ino
   - arduino --preserve-temp-files --verbose-build --verify --board $BOARD 3BtnTimer.ino &>/dev/null
 notifications:
   email: false
