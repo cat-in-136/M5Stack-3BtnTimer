@@ -27,8 +27,12 @@ void TimerEntity::loop() {
   case TimerStatus::stopped:
     if ((M5.BtnA.wasPressed() && M5.BtnB.isPressed()) ||
         (M5.BtnA.isPressed() && M5.BtnB.wasPressed())) {
-      _digitDisplay.setMin(0);
-      _digitDisplay.setSec(0);
+      if ((_digitDisplay.getMin() == 0) && (_digitDisplay.getSec() == 0)) {
+        beepingEnabled = !beepingEnabled;
+      } else {
+        _digitDisplay.setMin(0);
+        _digitDisplay.setSec(0);
+      }
     } else if (M5.BtnA.wasPressed()) {
       const uint8_t min = _digitDisplay.getMin() + 1;
       _digitDisplay.setMin((min > 99) ? 0 : min);
@@ -125,6 +129,12 @@ void TimerEntity::loop() {
     break;
   }
 
+  { // TODO refactor
+    M5.Lcd.setTextColor(_digitDisplay.getTextColor(), _backColor);
+    M5.Lcd.setTextDatum(TC_DATUM);
+    M5.Lcd.setTextSize(2);
+    M5.Lcd.drawString(beepingEnabled? "B" : "M", 0, _progressBar.rx + _progressBar.rh + 2, 1);
+  }
   _progressBar.draw();
   _digitDisplay.draw();
   _btnDrawer.draw();
