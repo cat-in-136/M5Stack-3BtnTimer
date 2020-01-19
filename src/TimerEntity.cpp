@@ -25,7 +25,8 @@ void TimerEntity::loop() {
   case TimerStatus::initial:
     break;
   case TimerStatus::stopped:
-    if (M5.BtnA.isPressed() && M5.BtnB.isPressed()) {
+    if ((M5.BtnA.wasPressed() && M5.BtnB.isPressed()) ||
+        (M5.BtnA.isPressed() && M5.BtnB.wasPressed())) {
       _digitDisplay.setMin(0);
       _digitDisplay.setSec(0);
     } else if (M5.BtnA.wasPressed()) {
