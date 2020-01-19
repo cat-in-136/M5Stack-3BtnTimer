@@ -3,6 +3,7 @@
 
 #include "BtnDrawer.h"
 #include "DigitDisplay.h"
+#include "IconView.h"
 #include "ProgressBar.h"
 
 enum class TimerStatus {
@@ -25,10 +26,11 @@ public:
     transitToStatus(TimerStatus::initial);
   };
 
-  bool beepingEnabled = true;
-
   void setup();
   void loop();
+
+  void setBeepingEnabled(bool beepingEnabled);
+  bool isBeepingEnabled() { return _beepingEnabled; };
 
 private:
   TimerStatus _status;
@@ -38,8 +40,10 @@ private:
 
   uint16_t _backColor;
   bool _visualBeepFlag;
+  bool _beepingEnabled = true;
 
   ProgressBar _progressBar;
+  IconView _bellIcon;
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;
 
