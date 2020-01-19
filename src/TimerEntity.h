@@ -42,8 +42,8 @@ private:
   bool _visualBeepFlag;
   bool _beepingEnabled = true;
 
-  ProgressBar _progressBar;
   IconView _bellIcon;
+  ProgressBar _progressBar;
   DigitDisplay _digitDisplay;
   BtnDrawer _btnDrawer;
 
