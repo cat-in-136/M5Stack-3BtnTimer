@@ -16,13 +16,18 @@ Make sure you have the following libraries:
 
 ## Usage
 
+### Install to M5Stack
+
 1. Build the app in usual way (using Arduino IDE).
 2. Put `3BtnTimer.bin` to root directory of SD card.
 3. Put `jpg/*` to `jpg` directory of SD card.
 4. Put `json/3BtnTimer.json` to `json` directory of SD card.
 5. Boot `3BtnTimer` from SD Updater or [LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher).
 
-## Customize
+### Features
 
-* To enable beep sound, add `timerEntity.beepingEnabled = true;` to `3BtnTimer.ino#setup()` function.
-
+* To reset, push **Min** (Button A) and **Sec** (Button B) at the same time
+* To toggle beep ON/OFF, push **Min** (Button A) and **Sec** (Button B) at the same time again.
+* To set the timer, push **Min** (Button A) and **Sec** (Button B). And then push **Start** (Button C) to start the timer.
+* To temporary stop, push **Stop** (Button C). And then push **Start** (Button C) to resume.
+* When expired the timer, the M5Stack beeps. To stop beep, push **Stop** (any button).
