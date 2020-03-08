@@ -25,7 +25,7 @@ void setup() {
   M5.Speaker.begin();
   M5.Speaker.mute();
 
-  timerEntity.beepingEnabled = false;
+  timerEntity.setBeepingEnabled(false);
   timerEntity.setup();
 }
 

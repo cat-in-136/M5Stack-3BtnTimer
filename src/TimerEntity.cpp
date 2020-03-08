@@ -2,8 +2,24 @@
 
 #include "BtnDrawer.h"
 #include "DigitDisplay.h"
+#include "IconView.h"
 #include "M5Stack.h"
 #include "ProgressBar.h"
+
+static const size_t ICON_WIDTH = 20;
+static const size_t ICON_HEIGHT = 20;
+static const uint8_t BELL_ICON[] = {
+    0x00, 0x06, 0x00, 0x00, 0x06, 0x00, 0x00, 0x0f, 0x00, 0xc0, 0x3f, 0x00,
+    0xe0, 0x7f, 0x00, 0xe0, 0x7f, 0x00, 0xf0, 0xff, 0x00, 0xf0, 0xff, 0x00,
+    0xf0, 0xff, 0x00, 0xf0, 0xff, 0x00, 0xf0, 0xff, 0x00, 0xf0, 0xff, 0x00,
+    0xf8, 0xff, 0x01, 0xf8, 0xff, 0x01, 0xfc, 0xff, 0x03, 0xfc, 0xff, 0x03,
+    0x00, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x06, 0x00};
+static const uint8_t BELL_SLASH_ICON[] = {
+    0x00, 0x06, 0x00, 0x01, 0x06, 0x00, 0x03, 0x0f, 0x00, 0x87, 0x3f, 0x00,
+    0xfe, 0x7f, 0x00, 0xfc, 0x7f, 0x00, 0xf0, 0xff, 0x00, 0xe0, 0xff, 0x00,
+    0x80, 0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xfe, 0x00, 0x10, 0xfc, 0x00,
+    0x78, 0xf0, 0x01, 0xf8, 0xe0, 0x01, 0xfc, 0xc1, 0x03, 0xfc, 0x03, 0x07,
+    0x00, 0x0f, 0x0e, 0x00, 0x0f, 0x0c, 0x00, 0x0f, 0x00, 0x00, 0x06, 0x00};
 
 static inline unsigned long div_ceil(unsigned long a, unsigned long b) {
   return (a + b - 1) / b;
@@ -12,9 +28,14 @@ static inline unsigned long div_ceil(unsigned long a, unsigned long b) {
 void TimerEntity::setup() {
   transitToStatus(TimerStatus::initial);
 
+  _bellIcon.x = 0;
+  _bellIcon.y = 0;
+  setBeepingEnabled(_beepingEnabled);
   _progressBar.rx = 0;
+  _progressBar.ry = 2 + ICON_HEIGHT;
   _progressBar.rw = M5.Lcd.width();
 
+  _bellIcon.invalidate();
   _progressBar.invalidate();
   _digitDisplay.invalidate();
   _btnDrawer.invalidate();
@@ -27,8 +48,12 @@ void TimerEntity::loop() {
   case TimerStatus::stopped:
     if ((M5.BtnA.wasPressed() && M5.BtnB.isPressed()) ||
         (M5.BtnA.isPressed() && M5.BtnB.wasPressed())) {
-      _digitDisplay.setMin(0);
-      _digitDisplay.setSec(0);
+      if ((_digitDisplay.getMin() == 0) && (_digitDisplay.getSec() == 0)) {
+        setBeepingEnabled(!_beepingEnabled);
+      } else {
+        _digitDisplay.setMin(0);
+        _digitDisplay.setSec(0);
+      }
     } else if (M5.BtnA.wasPressed()) {
       const uint8_t min = _digitDisplay.getMin() + 1;
       _digitDisplay.setMin((min > 99) ? 0 : min);
@@ -86,7 +111,7 @@ void TimerEntity::loop() {
       const unsigned long beepingPeriod = (millis() - _startingTime) % 1000;
 
       // Speaker beep
-      if (beepingEnabled) {
+      if (_beepingEnabled) {
         if (beepingPeriod % 100 < 50) {
           M5.Speaker.tone(1000, 100);
         }
@@ -125,6 +150,7 @@ void TimerEntity::loop() {
     break;
   }
 
+  _bellIcon.draw();
   _progressBar.draw();
   _digitDisplay.draw();
   _btnDrawer.draw();
@@ -134,10 +160,21 @@ void TimerEntity::setBackColor(uint16_t backColor) {
   if (_backColor != backColor) {
     _backColor = backColor;
     M5.Lcd.fillScreen(backColor);
+    _bellIcon.setColor(_progressBar.getForeColor(), backColor);
     _progressBar.setColor(_progressBar.getForeColor(), backColor);
     _digitDisplay.setColor(_digitDisplay.getTextColor(), backColor);
     // Do not change color of _btnDrawer but required to redraw.
     _btnDrawer.invalidate();
+  }
+}
+
+void TimerEntity::setBeepingEnabled(bool beepingEnabled) {
+  if (_beepingEnabled != beepingEnabled) {
+    const uint8_t *const icon = beepingEnabled ? BELL_ICON : BELL_SLASH_ICON;
+    _beepingEnabled = beepingEnabled;
+
+    _bellIcon.setIcon(icon, ICON_WIDTH, ICON_HEIGHT);
+    _bellIcon.invalidate();
   }
 }
 
