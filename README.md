@@ -1,6 +1,6 @@
 # 3BtnTimer
 
-[![Build Status](https://travis-ci.org/cat-in-136/M5Stack-3BtnTimer.svg?branch=master)](https://travis-ci.org/cat-in-136/M5Stack-3BtnTimer)
+[![M5Stack](https://github.com/cat-in-136/M5Stack-3BtnTimer/workflows/M5Stack/badge.svg)](https://github.com/cat-in-136/M5Stack-3BtnTimer/actions)
 
 * 3BtnTimer is a simple kitchen timer app for [M5Stack](http://m5stack.com/).
 * It is inspired by a simple kitchen timer which is sold at the DAISO (100-yen shop).
