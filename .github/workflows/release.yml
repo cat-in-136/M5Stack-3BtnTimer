@@ -1,0 +1,87 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+  build:
+    name: Test compiling using Arduino build environment for M5Stack
+    runs-on: ubuntu-latest
+    env:
+      PLATFORM: espressif:esp32
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # primary ino file must be named after directory and same name as the directory name
+          path: ./3BtnTimer
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1.1.1
+      - name: Install Libraries
+        run: |
+          arduino-cli lib install M5Stack
+          arduino-cli lib install M5Stack-SD-Updater
+
+      # https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/debian_ubuntu.md
+      - name: Checkout espressif/arduino-esp32
+        uses: actions/checkout@v2
+        with:
+          repository: espressif/arduino-esp32
+          path: ./espressif-arduino-esp32
+          submodules: true
+      - name: Setup espressif:esp32
+        run: |
+          sudo usermod -a -G dialout $USER
+          sudo pip install pyserial
+          mkdir -p ~/Arduino/hardware/espressif
+          mv ./espressif-arduino-esp32 ~/Arduino/hardware/espressif/esp32
+          cd ~/Arduino/hardware/espressif/esp32/tools
+          python3 get.py
+          arduino-cli core list
+
+      - name: Build
+        run: |
+          arduino-cli compile -v -b espressif:esp32:m5stack-core-esp32 3BtnTimer
+      - name: Check JSON file
+        run: cat 3BtnTimer/json/3BtnTimer.json | python -m json.tool > /dev/null
+
+      - name: Create a release asset file
+        run: |
+          cd 3BtnTimer
+          cp ./build/*/*.ino.bin 3BtnTimer.bin
+          zip -9 3BtnTimer.zip 3BtnTimer.bin \
+                               jpg/3BtnTimer.jpg jpg/3BtnTimer_gh.jpg \
+                               json/3BtnTimer.json
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      # Since Github actions (currently) doesn't provide a slugged version of the git tag we have to
+      # create it by ourselves. It is then made available to other steps in this job as a step.outputs
+      # variable
+      - name: Get the version (git tag)
+        id: get_version
+        run: |
+          echo ${GITHUB_REF/refs\/tags\//}
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: 3BtnTimer/3BtnTimer.zip
+          asset_name: 3BtnTimer-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_content_type: application/zip
