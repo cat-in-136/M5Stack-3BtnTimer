@@ -47,6 +47,8 @@ jobs:
       - name: Build
         run: |
           arduino-cli compile -v -b espressif:esp32:m5stack-core-esp32 3BtnTimer
+      - name: Check JSON file
+        run: cat 3BtnTimer/json/3BtnTimer.json | python -m json.tool > /dev/null
 
       - name: Create a release asset file
         run: |
